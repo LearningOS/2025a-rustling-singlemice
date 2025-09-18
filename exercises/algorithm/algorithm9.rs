@@ -1,8 +1,7 @@
 /*
-	heap
-	This question requires you to implement a binary heap function
+    heap
+    This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -38,8 +37,22 @@ where
 
     pub fn add(&mut self, value: T) {
         //TODO
+        self.count += 1;
+        self.items.push(value);
+        // 向上调整维护堆性质
+        self.heapify_up(self.count);
     }
-
+    fn heapify_up(&mut self, mut idx: usize) {
+        while idx > 1 {
+            let parent_idx = self.parent_idx(idx);
+            if (self.comparator)(&self.items[idx], &self.items[parent_idx]) {
+                self.items.swap(idx, parent_idx);
+                idx = parent_idx;
+            } else {
+                break;
+            }
+        }
+    }
     fn parent_idx(&self, idx: usize) -> usize {
         idx / 2
     }
@@ -58,7 +71,34 @@ where
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
         //TODO
-		0
+        let left_idx = self.left_child_idx(idx);
+        let right_idx = self.right_child_idx(idx);
+
+        if right_idx <= self.count {
+            // 两个子节点都存在，选择满足comparator的那个
+            if (self.comparator)(&self.items[left_idx], &self.items[right_idx]) {
+                left_idx
+            } else {
+                right_idx
+            }
+        } else if left_idx <= self.count {
+            // 只有左子节点存在
+            left_idx
+        } else {
+            // 没有子节点（不应该在children_present为true时发生）
+            idx
+        }
+    }
+    fn heapify_down(&mut self, mut idx: usize) {
+        while self.children_present(idx) {
+            let child_idx = self.smallest_child_idx(idx);
+            if (self.comparator)(&self.items[child_idx], &self.items[idx]) {
+                self.items.swap(idx, child_idx);
+                idx = child_idx;
+            } else {
+                break;
+            }
+        }
     }
 }
 
@@ -85,7 +125,29 @@ where
 
     fn next(&mut self) -> Option<T> {
         //TODO
-		None
+
+        if self.count == 0 {
+            return None;
+        }
+
+        if self.count == 1 {
+            // 只有一个元素的情况
+            self.count = 0;
+            return self.items.pop();
+        }
+
+        // 交换根节点和最后一个节点
+        let last_idx = self.count;
+        self.items.swap(1, last_idx);
+
+        // 移除最后一个节点（原来的根）
+        let root = self.items.pop().unwrap();
+        self.count -= 1;
+
+        // 从根开始向下调整维护堆性质
+        self.heapify_down(1);
+
+        Some(root)
     }
 }
 
